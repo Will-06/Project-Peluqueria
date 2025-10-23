@@ -92,4 +92,14 @@ class Haircut extends Model
     {
         $this->decrement('like_count');
     }
+
+    public function incrementFavoriteCount()
+    {
+        $this->increment('favorite_count');
+    }
+
+    public function decrementFavoriteCount()
+    {
+        $this->decrement('favorite_count');
+    }
 }

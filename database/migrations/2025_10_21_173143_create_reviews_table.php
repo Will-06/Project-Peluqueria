@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('haircut_id')->constrained()->onDelete('cascade');
-            $table->tinyInteger('rating')->unsigned()->check('rating BETWEEN 1 AND 5');
+            $table->tinyInteger('rating')->unsigned();
             $table->text('comment')->nullable();
             $table->timestamps();
             

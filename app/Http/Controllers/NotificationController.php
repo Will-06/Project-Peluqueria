@@ -3,64 +3,62 @@
 namespace App\Http\Controllers;
 
 use App\Models\Notification;
-use App\Http\Requests\StoreNotificationRequest;
-use App\Http\Requests\UpdateNotificationRequest;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class NotificationController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(Request $request): AnonymousResourceCollection
     {
-        //
+        $notifications = Notification::where('user_id', $request->user()->id)
+            ->latest()
+            ->paginate(20);
+
+        return \App\Http\Resources\NotificationResource::collection($notifications);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function markAsRead(Notification $notification): JsonResponse
     {
-        //
+        $this->authorize('update', $notification);
+
+        $notification->markAsRead();
+
+        return response()->json([
+            'message' => 'Notificación marcada como leída'
+        ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreNotificationRequest $request)
+    public function markAllAsRead(Request $request): JsonResponse
     {
-        //
+        Notification::where('user_id', $request->user()->id)
+            ->unread()
+            ->update(['read_at' => now()]);
+
+        return response()->json([
+            'message' => 'Todas las notificaciones marcadas como leídas'
+        ]);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Notification $notification)
+    public function destroy(Notification $notification): JsonResponse
     {
-        //
+        $this->authorize('delete', $notification);
+
+        $notification->delete();
+
+        return response()->json([
+            'message' => 'Notificación eliminada'
+        ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Notification $notification)
+    public function unreadCount(Request $request): JsonResponse
     {
-        //
-    }
+        $count = Notification::where('user_id', $request->user()->id)
+            ->unread()
+            ->count();
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateNotificationRequest $request, Notification $notification)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Notification $notification)
-    {
-        //
+        return response()->json([
+            'unread_count' => $count
+        ]);
     }
 }

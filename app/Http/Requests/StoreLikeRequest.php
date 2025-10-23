@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreAppointmentRequest extends FormRequest
+class StoreLikeRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -14,8 +14,8 @@ class StoreAppointmentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'haircut_id' => 'nullable|exists:haircuts,id',
-            'message' => 'required|string|max:1000',
+            'haircut_id' => 'required|exists:haircuts,id',
+            'type' => 'required|in:like,love',
         ];
     }
 }

@@ -4,63 +4,42 @@ namespace App\Policies;
 
 use App\Models\Haircut;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class HaircutPolicy
 {
-    /**
-     * Determine whether the user can view any models.
-     */
     public function viewAny(User $user): bool
     {
-        return false;
+        return true; // Todos pueden ver la lista de cortes
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
     public function view(User $user, Haircut $haircut): bool
     {
-        return false;
+        // Solo cortes publicados o admin puede ver todos
+        return $haircut->is_published || $user->isAdmin();
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
     public function create(User $user): bool
     {
-        return false;
+        return $user->isAdmin();
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
     public function update(User $user, Haircut $haircut): bool
     {
-        return false;
+        return $user->isAdmin() && $haircut->admin_id === $user->id;
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
     public function delete(User $user, Haircut $haircut): bool
     {
-        return false;
+        return $user->isAdmin() && $haircut->admin_id === $user->id;
     }
 
-    /**
-     * Determine whether the user can restore the model.
-     */
-    public function restore(User $user, Haircut $haircut): bool
+    public function publish(User $user, Haircut $haircut): bool
     {
-        return false;
+        return $user->isAdmin() && $haircut->admin_id === $user->id;
     }
 
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
-    public function forceDelete(User $user, Haircut $haircut): bool
+    public function manageImages(User $user, Haircut $haircut): bool
     {
-        return false;
+        return $user->isAdmin() && $haircut->admin_id === $user->id;
     }
 }

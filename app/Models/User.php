@@ -85,11 +85,29 @@ class User extends Authenticatable
     // Métodos de utilidad
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return $this->role === 'admin' || $this->hasRole('admin');
     }
 
     public function isClient(): bool
     {
-        return $this->role === 'client';
+        return $this->role === 'client' || $this->hasRole('client');
+    }
+
+    // Asignar rol basado en el campo role
+    protected static function booted()
+    {
+        static::created(function ($user) {
+            if ($user->role === 'admin' && !$user->hasRole('admin')) {
+                $user->assignRole('admin');
+            } elseif ($user->role === 'client' && !$user->hasRole('client')) {
+                $user->assignRole('client');
+            }
+        });
+
+        static::updated(function ($user) {
+            if ($user->isDirty('role')) {
+                $user->syncRoles([$user->role]);
+            }
+        });
     }
 }

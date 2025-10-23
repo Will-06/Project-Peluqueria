@@ -60,6 +60,31 @@ return [
             'report' => false,
         ],
 
+
+
+
+
+
+        
+        'haircuts' => [
+        'driver' => 'local',
+        'root' => storage_path('app/public/haircuts'),
+        'url' => env('APP_URL').'/storage/haircuts',
+        'visibility' => 'public',
+    ],
+    'avatars' => [
+        'driver' => 'local',
+        'root' => storage_path('app/public/avatars'),
+        'url' => env('APP_URL').'/storage/avatars',
+        'visibility' => 'public',
+    ],
+    'schedules' => [
+        'driver' => 'local',
+        'root' => storage_path('app/public/schedules'),
+        'url' => env('APP_URL').'/storage/schedules',
+        'visibility' => 'public',
+    ],
+
     ],
 
     /*

@@ -3,64 +3,86 @@
 namespace App\Http\Controllers;
 
 use App\Models\Schedule;
-use App\Http\Requests\StoreScheduleRequest;
-use App\Http\Requests\UpdateScheduleRequest;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class ScheduleController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(): JsonResponse
     {
-        //
+        $schedule = Schedule::with('admin')
+            ->where('is_active', true)
+            ->first();
+
+        return response()->json([
+            'data' => $schedule ? [
+                'id' => $schedule->id,
+                'image_url' => $schedule->image_url,
+                'is_active' => $schedule->is_active,
+                'admin' => [
+                    'id' => $schedule->admin->id,
+                    'name' => $schedule->admin->name,
+                ],
+                'created_at' => $schedule->created_at
+            ] : null
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function store(Request $request): JsonResponse
     {
-        //
+        $this->authorize('manage-schedules');
+
+        $request->validate([
+            'image_url' => 'required|url|max:500',
+        ]);
+
+        // Desactivar horarios anteriores
+        Schedule::where('is_active', true)->update(['is_active' => false]);
+
+        $schedule = Schedule::create([
+            'admin_id' => $request->user()->id,
+            'image_url' => $request->image_url,
+            'is_active' => true,
+        ]);
+
+        return response()->json([
+            'message' => 'Horario actualizado exitosamente',
+            'data' => $schedule
+        ], 201);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreScheduleRequest $request)
+    public function update(Request $request, Schedule $schedule): JsonResponse
     {
-        //
+        $this->authorize('manage-schedules');
+
+        $request->validate([
+            'image_url' => 'sometimes|url|max:500',
+            'is_active' => 'boolean',
+        ]);
+
+        if ($request->has('is_active') && $request->is_active) {
+            // Desactivar otros horarios si se activa este
+            Schedule::where('id', '!=', $schedule->id)
+                ->where('is_active', true)
+                ->update(['is_active' => false]);
+        }
+
+        $schedule->update($request->all());
+
+        return response()->json([
+            'message' => 'Horario actualizado',
+            'data' => $schedule
+        ]);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Schedule $schedule)
+    public function destroy(Schedule $schedule): JsonResponse
     {
-        //
-    }
+        $this->authorize('manage-schedules');
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Schedule $schedule)
-    {
-        //
-    }
+        $schedule->delete();
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateScheduleRequest $request, Schedule $schedule)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Schedule $schedule)
-    {
-        //
+        return response()->json([
+            'message' => 'Horario eliminado'
+        ]);
     }
 }
